@@ -1,0 +1,148 @@
+##################################
+CS 525 - Advanced Database Systems
+##################################
+
+ASSIGNMENT 2 - Buffer Management System
+
+########################################################################
+Team Members and Contribution (Names are commented on the source code) :
+########################################################################
+
+1. NAME: Ganesh Prasad Chandra Shekar
+   EMAIL: gchandrashekar@hawk.iit.edu
+   CWID: A20557831
+   CONTRIBUTION: 33.33 %
+
+2. NAME: Dhyan Vasudeva Gowda
+   email: dgowda2@hawk.iit.edu
+   CWID: A20592874
+   CONTRIBUTION: 33.33 %
+
+3. NAME: Jafar Alzoubi
+   EMAIL: jalzoubi@hawk.iit.edu
+   CWID: A20501723
+   CONTRIBUTION: 33.33 %
+
+######################################
+Steps to Execute the Code:
+######################################
+To run the buffer management system, follow these steps in the terminal:
+
+    1.	Step 1: Clean the Environment
+    •	Command: $ make clean
+    •	Purpose: This command removes all object files and any existing executable binaries that were generated from previous builds. It clears out the compiled files and resets the environment, ensuring that the next build starts with a clean slate, preventing conflicts from older builds.
+
+    2.	Step 2: Build the Executable
+    •	Command: $ make
+    •	Purpose: This command compiles the source code and generates the executable file named test_assignment2. The make command reads the Makefile, which includes instructions for compiling and linking the code. The output is a binary that can be executed to run the buffer management system.
+
+    3.	Step 3: Execute the Program
+    •	Command: $ ./test_assign1
+    •	Purpose: This command executes the binary file generated in Step 2. It runs the buffer management system, loading the necessary buffer pool, initializing pages, and executing all implemented operations. The program will handle memory management, page replacement strategies, and interaction with disk files.
+
+######################################
+BUFFER MANAGER INTERFACE POOL HANDLING
+######################################
+Buffer Pool Operations:
+
+    FUNCTION: initializeBufferPool()
+
+    •	Author: Jafar Alzoubi
+    •	Description: This function initializes the buffer pool, which is responsible for managing the memory where pages from the disk are temporarily stored. It takes the page file as input and sets up a buffer pool with a specific number of pages. The function also initializes the page replacement strategy (such as FIFO, LRU, CLOCK) that dictates how pages are managed in the buffer. This setup is crucial for optimizing read/write operations and reducing disk I/O by holding frequently accessed pages in memory.
+    •	Parameters:	BM_BufferPool *bp, const char *pg_FName, int p_id, ReplacementStrategy approach, void *approachData
+
+    FUNCTION: shutdownBufferPool()
+
+    •	Author: Jafar Alzoubi
+    •	Description: This function shuts down the buffer pool, releasing all the resources allocated during the program’s execution. It ensures that any modified (dirty) pages in the buffer are written back to disk before the buffer is closed. If any pages are still pinned (in use), it raises an error to indicate that some pages cannot be written back because they are still in active use.
+
+    •	Parameters: BM_BufferPool *bp
+
+    FUNCTION: forceFlushPool()
+    •	Author: Jafar Alzoubi
+    •	Description: This function ensures that all dirty pages (pages that have been modified during execution) are immediately written back to disk. This operation is necessary to persist changes from memory to disk storage. It forces the buffer manager to push all modified data back to the page file, even if the buffer pool is not being shut down.
+    •	Parameters: BM_BufferPool *bp
+
+######################################
+BUFFER MANAGER INTERFACE ACCESS PAGES
+######################################
+Page Management Functions:
+
+    FUNCTION: unpinPage()
+    •	Author: Ganesh Prasad
+    •	Description: This function unpins a page, indicating that it is no longer being used by the client. A pinned page is a page that has been accessed and is in use. Once the work on the page is done, this function allows the page to be unpinned, making it available for replacement if needed. If a page is unpinned, it can be evicted from the buffer when the buffer is full and a page replacement strategy is triggered.
+    •	Parameters: BM_BufferPool *bp, BM_PageHandle *pg
+
+
+    FUNCTION: forcePage()
+    •	Author: Ganesh Prasad
+    •	Description: This function writes the content of a specific page from the buffer pool back to the disk. This is typically used for dirty pages that have been modified, ensuring the page’s content on the disk reflects the changes made in memory.
+    •	Parameters:
+    •	BM_BufferPool *bp, BM_PageHandle *pg
+
+
+    FUNCTION: pinPage()
+    •	Authors: Ganesh Prasad
+    •	Description: This function loads a page from disk into the buffer pool (or pins it if already in the buffer). If the buffer is full, it invokes the selected page replacement algorithm to determine which page to evict from the buffer. The pinned page remains in memory until it is unpinned by the client. This function is responsible for ensuring that frequently accessed pages are kept in memory and loaded efficiently.
+    •	Parameters: BM_BufferPool *bp, BM_PageHandle *p_handle, PageNumber pageid
+
+
+    FUNCTION: markDirty()
+    •	Author: Jafar Alzoubi
+    •	Description: Marks a page in the buffer pool as “dirty,” indicating that it has been modified. When a page is marked dirty, it needs to be written back to disk at some point, either during a flush or when the page is replaced. This ensures that the changes made to the page in memory are saved permanently.
+    •	Parameters:	BM_BufferPool *bm,	BM_PageHandle *page
+
+######################################
+STATISTICS INTERFACE
+######################################
+Statistics Functions:
+
+    FUNCTION: getFrameContents()
+    •	Author: Ganesh Prasad
+    •	Description: Returns the content (page IDs) of each page currently stored in the buffer pool. This helps track which pages are currently loaded in the buffer.
+    •	Parameters: BM_BufferPool *bm
+
+    FUNCTION: getDirtyFlags()
+    •	Author: Dhyan Vasudeva Gowda
+    •	Description: Returns an array of dirty flags, indicating which pages in the buffer pool have been modified and need to be written back to disk.
+    •	Parameters: BM_BufferPool *bm
+
+    FUNCTION: getFixCounts()
+    •	Author: Dhyan Vasudeva Gowda
+    •	Description: Returns an array containing the fix counts of the pages in the buffer pool, showing how many times each page has been pinned and is currently in use.
+    •	Parameters: BM_BufferPool *bm
+
+    FUNCTION: getNumReadIO()
+    •	Author: Dhyan Vasudeva Gowda
+    •	Description: Returns the total number of I/O read operations performed, i.e., how many pages have been read from disk into the buffer pool.
+    •	Parameters: BM_BufferPool *bm
+
+    FUNCTION: getNumWriteIO()
+    •	Author: Dhyan Vasudeva Gowda
+    •	Description: Returns the total number of I/O write operations performed, i.e., how many pages have been written from the buffer pool back to disk.
+    •	Parameters: BM_BufferPool *bm
+
+######################################
+REPLACEMENT STRATEGIES
+######################################
+Page Replacement Algorithms:
+
+    FUNCTION: FIFO()
+    •	Author: Dhyan Vasudeva Gowda
+    •	Description: Implements the First-In-First-Out (FIFO) page replacement strategy. When the buffer pool is full and a new page needs to be loaded, the oldest page (the one that has been in the buffer the longest) is replaced.
+    •	Parameters: BM_BufferPool *bp, PageFrame *pf
+
+    FUNCTION: LRU()
+    •	Author: Dhyan Vasudeva Gowda
+    •	Description: Implements the Least Recently Used (LRU) page replacement strategy. It replaces the page that has not been used for the longest time when the buffer is full. This strategy is useful in scenarios where pages that are accessed less frequently are evicted.
+    •	Parameters: BM_BufferPool *bp, PageFrame *pf
+
+    FUNCTION: LRU_K()
+    •	Author: Ganesh Prasad
+    •	Description: Selects the least recently used page from the buffer pool when a page replacement is needed. The algorithm works by tracking how recently each page in the buffer pool was accessed, using an LRU counter (lru_num) for each page. When the buffer is full and a new page needs to be loaded, LRU_K will replace the page with the lowest LRU number (i.e., the least recently used one). If the page to be replaced has been modified (i.e., its dirty flag is set), the algorithm writes the page back to disk before replacement.
+    •	Parameters: BM_BufferPool *bp, PageFrame *pf
+
+    FUNCTION: CLOCK()
+    •	Author: Jafar Alzoubi
+    •	Description: Implements the CLOCK page replacement algorithm, which maintains a circular queue of pages. When a page needs to be replaced, the algorithm cycles through the pages, replacing the one that has been least recently used, but in a a clock-like fashion.
+    •	Parameters: BM_BufferPool *bp, PageFrame *newFrame
